@@ -1,8 +1,8 @@
 package com.javarush.test.level33.lesson15.big01.strategies;
 
-import com.javarush.test.level32.lesson15.big01.ExceptionHandler;
+import com.javarush.test.level33.lesson15.big01.ExceptionHandler;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -33,27 +33,54 @@ public class FileBucket
     }
 
     public void putEntry(Entry entry) {
-
+        try (
+                OutputStream out = Files.newOutputStream(path);
+                ObjectOutputStream oos = new ObjectOutputStream(out);
+                ) {
+            while (entry != null) {
+                oos.writeObject(entry);
+                entry = entry.next;
+            }
+        } catch (IOException e) {
+            ExceptionHandler.log(e);
+        }
     }
 
     public Entry getEntry() {
-        return null;
+        Entry result = null;
+
+        if (getFileSize() == 0) {
+            return null;
+        } else {
+            try (
+                    InputStream in = Files.newInputStream(path);
+                    ObjectInputStream ois = new ObjectInputStream(in);
+                    ) {
+                Entry entry = null;
+                Object o = null;
+                while (in.available() > 0) {
+                    o = ois.readObject();
+                    if (entry == null) {
+                        entry = (Entry)o;
+                        result = (Entry)o;
+                    } else {
+                        entry.next = (Entry)o;
+                        entry = entry.next;
+                    }
+                }
+                return result;
+            } catch (Exception e) {
+                ExceptionHandler.log(e);
+            }
+        }
+        return result;
     }
 
     public void remove() {
-
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            ExceptionHandler.log(e);
+        }
     }
-
 }
-
-/*
-9.4.	Добавь в класс методы:
-9.4.1.	long getFileSize(), он должен возвращать размер файла на который
-указывает path.
-9.4.2.	void putEntry(Entry entry) - должен сериализовывать переданный entry в
-файл. Учти, каждый entry может содержать еще один entry.
-9.4.3.	Entry getEntry() - должен забирать entry из файла. Если файл имеет нулевой
-размер, вернуть null.
-9.4.4.	void remove() – удалять файл на который указывает path.
-Конструктор и методы не должны кидать исключения.
- */

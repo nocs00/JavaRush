@@ -64,6 +64,9 @@ public class Solution {
 
         OurHashMapStorageStrategy ourStrategy = new OurHashMapStorageStrategy();
         testStrategy(ourStrategy, 10000);
+
+        FileStorageStrategy fileStrategy = new FileStorageStrategy();
+        testStrategy(fileStrategy, 100);
     }
 
 }
