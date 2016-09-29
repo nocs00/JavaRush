@@ -67,6 +67,9 @@ public class Solution {
 
         FileStorageStrategy fileStrategy = new FileStorageStrategy();
         testStrategy(fileStrategy, 100);
+
+        OurHashBiMapStorageStrategy biStrategy = new OurHashBiMapStorageStrategy();
+        testStrategy(biStrategy, 10000);
     }
 
 }
