@@ -25,5 +25,8 @@
         <module name="JavaRushHomeWork" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="JavaRushHomeWork" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

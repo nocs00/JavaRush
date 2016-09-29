@@ -70,6 +70,12 @@ public class Solution {
 
         OurHashBiMapStorageStrategy biStrategy = new OurHashBiMapStorageStrategy();
         testStrategy(biStrategy, 10000);
+
+        HashBiMapStorageStrategy guavaStrategy = new HashBiMapStorageStrategy();
+        testStrategy(guavaStrategy, 10000);
+
+        DualHashBidiMapStorageStrategy apacheStrategy = new DualHashBidiMapStorageStrategy();
+        testStrategy(apacheStrategy, 10000);
     }
 
 }
