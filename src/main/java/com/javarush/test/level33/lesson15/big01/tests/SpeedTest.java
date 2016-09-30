@@ -52,6 +52,6 @@ public class SpeedTest {
         time1 = getTimeForGettingStrings(shortener1, ids1, strings1);
         time2 = getTimeForGettingStrings(shortener2, ids2, strings2);
 
-        Assert.assertEquals(time1, time2, 15);
+        Assert.assertEquals(time1, time2, 50);
     }
 }
