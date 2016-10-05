@@ -50,7 +50,6 @@ public class Model {
             case LEFT: deltaX = -delta; break;
             case RIGHT: deltaX = delta; break;
         }
-
         gameObjects.getPlayer().move(deltaX, deltaY);
         checkCompletion();
     }
@@ -66,48 +65,67 @@ public class Model {
 
     public boolean checkBoxCollision(Direction direction) {
 
-        if (checkWallCollision(gameObjects.getPlayer(), direction)) {
-            return true;
-        }
+        Player player = gameObjects.getPlayer();
 
-        for (Box box : gameObjects.getBoxes()) {
-            if (gameObjects.getPlayer().isCollision(box, direction)) {
-                if (checkWallCollision(box, direction)) return true;
-                for (Box nextBox : gameObjects.getBoxes()) {
-                    if (box.isCollision(nextBox, direction)) return true;
-                }
-
-                int delta = FIELD_SELL_SIZE;
-                int deltaX = 0;
-                int deltaY = 0;
-
-                switch (direction) {
-                    case UP: deltaY = -delta; break;
-                    case DOWN: deltaY = delta; break;
-                    case LEFT: deltaX = -delta; break;
-                    case RIGHT: deltaX = delta; break;
-                }
-
-                box.move(deltaX, deltaY);
+        GameObject metGameObject = null;
+        for (GameObject gameObject : gameObjects.getAll()) {
+            if (!(gameObject instanceof Player) && !(gameObject instanceof Home) && player.isCollision(gameObject, direction)) {
+                metGameObject = gameObject;
             }
         }
 
+        if ((metGameObject == null)) {
+            return false;
+        }
+
+        if (metGameObject instanceof Box) {
+            Box metBox = (Box) metGameObject;
+            if (checkWallCollision(metBox, direction)) {
+                return true;
+            }
+            for (Box box : gameObjects.getBoxes()) {
+                if (metBox.isCollision(box, direction)) {
+                    return true;
+                }
+            }
+            switch (direction) {
+                case LEFT:
+                    metBox.move(-FIELD_SELL_SIZE, 0);
+                    break;
+                case RIGHT:
+                    metBox.move(FIELD_SELL_SIZE, 0);
+                    break;
+                case UP:
+                    metBox.move(0, -FIELD_SELL_SIZE);
+                    break;
+                case DOWN:
+                    metBox.move(0, FIELD_SELL_SIZE);
+            }
+        }
         return false;
+
     }
 
     public void checkCompletion() {
-        int boxCount = gameObjects.getBoxes().size();
-        int homesWithBoxes = 0;
+
+        boolean allHomesCovered = true;
+
         for (Home home : gameObjects.getHomes()) {
+            boolean isBoxInHome = false;
+
             for (Box box : gameObjects.getBoxes()) {
-                if (box.getX() == home.getX()
-                        && box.getY() == home.getY()) {
-                    homesWithBoxes++;
+                if ((box.getX() == home.getX()) && (box.getY() == home.getY())) {
+                    isBoxInHome = true;
                     break;
                 }
             }
+
+            if (!isBoxInHome) {
+                allHomesCovered = false;
+            }
         }
-        if (boxCount == homesWithBoxes) {
+
+        if (allHomesCovered) {
             eventListener.levelCompleted(currentLevel);
         }
     }

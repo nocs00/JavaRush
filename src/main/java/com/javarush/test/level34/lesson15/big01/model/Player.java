@@ -19,7 +19,5 @@ public class Player extends CollisionObject implements Movable {
         int y = this.getY()-(this.getHeight()/2);
         graphics.setColor(Color.YELLOW);
         graphics.fillOval(x, y, this.getWidth(), this.getHeight());
-//        graphics.setColor(Color.BLACK);
-//        graphics.drawOval(x, y, this.getWidth(), this.getHeight());
     }
 }
