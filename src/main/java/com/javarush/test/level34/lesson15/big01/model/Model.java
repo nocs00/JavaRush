@@ -37,6 +37,78 @@ public class Model {
     }
 
     public void move(Direction direction) {
+        if (checkWallCollision(gameObjects.getPlayer(), direction)) return;
+        if (checkBoxCollision(direction)) return;
 
+        int delta = FIELD_SELL_SIZE;
+        int deltaX = 0;
+        int deltaY = 0;
+
+        switch (direction) {
+            case UP: deltaY = -delta; break;
+            case DOWN: deltaY = delta; break;
+            case LEFT: deltaX = -delta; break;
+            case RIGHT: deltaX = delta; break;
+        }
+
+        gameObjects.getPlayer().move(deltaX, deltaY);
+        checkCompletion();
+    }
+
+    public boolean checkWallCollision(CollisionObject gameObject, Direction direction) {
+        for (Wall wall : gameObjects.getWalls()) {
+            if (gameObject.isCollision(wall, direction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkBoxCollision(Direction direction) {
+
+        if (checkWallCollision(gameObjects.getPlayer(), direction)) {
+            return true;
+        }
+
+        for (Box box : gameObjects.getBoxes()) {
+            if (gameObjects.getPlayer().isCollision(box, direction)) {
+                if (checkWallCollision(box, direction)) return true;
+                for (Box nextBox : gameObjects.getBoxes()) {
+                    if (box.isCollision(nextBox, direction)) return true;
+                }
+
+                int delta = FIELD_SELL_SIZE;
+                int deltaX = 0;
+                int deltaY = 0;
+
+                switch (direction) {
+                    case UP: deltaY = -delta; break;
+                    case DOWN: deltaY = delta; break;
+                    case LEFT: deltaX = -delta; break;
+                    case RIGHT: deltaX = delta; break;
+                }
+
+                box.move(deltaX, deltaY);
+            }
+        }
+
+        return false;
+    }
+
+    public void checkCompletion() {
+        int boxCount = gameObjects.getBoxes().size();
+        int homesWithBoxes = 0;
+        for (Home home : gameObjects.getHomes()) {
+            for (Box box : gameObjects.getBoxes()) {
+                if (box.getX() == home.getX()
+                        && box.getY() == home.getY()) {
+                    homesWithBoxes++;
+                    break;
+                }
+            }
+        }
+        if (boxCount == homesWithBoxes) {
+            eventListener.levelCompleted(currentLevel);
+        }
     }
 }

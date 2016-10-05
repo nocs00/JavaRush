@@ -41,7 +41,7 @@ public class Field extends JPanel {
         }
     }
 
-    class KeyHandler extends KeyAdapter {
+    public class KeyHandler extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
             switch (e.getKeyCode()) {
