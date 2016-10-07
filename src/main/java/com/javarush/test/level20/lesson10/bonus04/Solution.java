@@ -1,12 +1,13 @@
 package com.javarush.test.level20.lesson10.bonus04;
 
-import java.util.LinkedList;
+import java.io.Serializable;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /* Свой список
-Посмотреть, как реализован LinkedList.
-Элементы следуют так: 1->2->3->4  и так 4->3->2->1
-По образу и подобию создать Solution.
+
 Элементы должны следовать так:
 1->3->7->15
     ->8...
@@ -16,10 +17,13 @@ import java.util.List;
     ->12
  ->6->13
     ->14
+
 Удалили 2 и 9
+
 1->3->7->15
     ->8
  ->4->10
+
 Добавили 16,17,18,19,20 (всегда добавляются на самый последний уровень к тем элементам, которые есть)
 1->3->7->15
        ->16
@@ -51,19 +55,223 @@ import java.util.List;
 Должно быть наследование AbstractList<String>, List<String>, Cloneable, Serializable
 Метод main в тестировании не участвует
 */
-public class Solution {
-//    public static void main(String[] args) {
-//        //List<String> list = new Solution();
-//        for (int i = 1; i < 16; i++) {
-//            list.add(String.valueOf(i));
-//        }
-//        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
-//        list.remove("5");
-//        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
-//    }
-//
-//    public String getParent(String value) {
-//        //have to be implemented
-//        return null;
-//    }
+public class Solution
+    extends AbstractList<String> implements List<String>, Cloneable, Serializable {
+
+    private Node root = new Node(null);
+
+    @Override
+    public String get(int index) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
+        return countNodes(root) - 1;
+    }
+
+    @Override
+    public boolean add(String value) {
+        Node node = new Node(value);
+        int level = findLastLevel();
+        return pasteOnLevel(level, node);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        String value = (String)o;
+        Node node = findNode(root, value);
+        if (node == null) return false;
+        Node parent = node.prev;
+
+        if (parent.left != null && parent.left.equals(node)) {
+            parent.left = parent.right;
+            parent.right = null;
+            return true;
+        }
+        if (parent.right != null && parent.right.equals(node)) {
+            parent.right = null;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+        return new MyIterator();
+    }
+
+    public String getParent(String value) {
+        Node nodeWithValue = findNode(root, value);
+        Node parent = nodeWithValue != null ? nodeWithValue.prev : null;
+
+        return parent != null ? parent.value : null;
+    }
+
+    private Node findNode(Node node, String value) {
+        if (node == null) return null;
+
+        String nodeValue = node.value;
+        if (nodeValue == value) return node;
+        if (nodeValue != null && value != null && nodeValue.equals(value)) return node;
+
+        Node node1 = findNode(node.left, value);
+        Node node2 = findNode(node.right, value);
+        if (node1 != null) return node1;
+        if (node2 != null) return node2;
+
+        return null;
+    }
+
+    private int countNodes(Node node) {
+        if (node == null) return 0;
+        int count = 1;
+
+        if (node.left != null) {
+            count += countNodes(node.left);
+        }
+
+        if (node.right != null) {
+            count += countNodes(node.right);
+        }
+
+        return count;
+    }
+
+    private int findLastLevel() {
+        int level = 1;
+
+        while (hasChildsOnLevel(level)) {
+            level++;
+        }
+
+        if (!isLevelFilled(level-1)) return level - 1;
+
+        return level;
+    }
+
+    private boolean isLevelFilled(int level) {
+        if (level < 0) throw new IllegalArgumentException();
+        if (level == 0) return true;
+        List<Node> levelNodes = getLevelNodes(level-1);
+        Node lastNode = levelNodes.get(levelNodes.size()-1);
+        if (lastNode.right == null) return false;
+
+        return true;
+    }
+
+    private boolean hasChildsOnLevel(int level) {
+        if (level < 0) throw new IllegalArgumentException();
+        List<Node> levelNodes = getLevelNodes(level-1);
+
+        if (levelNodes == null || levelNodes.isEmpty()) return false;
+
+        for (Node node : levelNodes) {
+            if (node.left != null || node.right != null) return true;
+        }
+        return false;
+    }
+
+    private List<Node> getLevelNodes(int level) {
+        List<Node> levelNodes = new ArrayList<>();
+        levelNodes.add(root);
+
+        while (level != 0) {
+            level--;
+            List<Node> tNodes = new ArrayList<>();
+            for (Node levelNode : levelNodes) {
+                if (levelNode.left != null) tNodes.add(levelNode.left);
+                if (levelNode.right != null) tNodes.add(levelNode.right);
+            }
+            levelNodes = tNodes;
+        }
+
+        return levelNodes;
+    }
+
+    private boolean pasteOnLevel(int level, Node toPaste) { //fixme : Добавили 21 и 22 works wrong
+        List<Node> prevLevel = getLevelNodes(level - 1);
+
+        for (int i = prevLevel.size()-1; i >= 0; i--) {
+            Node node = prevLevel.get(i);
+            if (i != 0) {
+                Node prevNode = prevLevel.get(i-1);
+                if (prevNode.left == null || prevNode.right == null) continue;
+            }
+            if (node.left == null) {
+                node.left = toPaste;
+                node.left.prev = node;
+                return true;
+            }
+            if (node.right == null) {
+                node.right = toPaste;
+                node.right.prev = node;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private class MyIterator implements Iterator<String> {
+
+        public MyIterator() {
+
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public String next() {
+            return null;
+        }
+
+        @Override
+        public void remove() {
+
+        }
+    }
+
+    private static class Node {
+        String value;
+        Node prev;
+        Node left;
+        Node right;
+
+        Node(String value) {
+            Node.this.value = value;
+        }
+    }
+
+    public static void main(String[] args) {
+        //test1
+        List<String> list = new Solution();
+        Node root = ((Solution)list).root;
+        for (int i = 1; i < 16; i++) {
+            list.add(String.valueOf(i));
+        }
+        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
+        list.remove("5");
+        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
+
+        //test2
+        List<String> list2 = new Solution();
+        Node root2 = ((Solution) list2).root;
+        for (int i = 1; i < 16; i++) {
+            list2.add(String.valueOf(i));
+        }
+        list2.remove("2");
+        list2.remove("9");
+        //add 16,17,18,19,20
+        for (int i = 16; i < 21; i++) {
+            list2.add(String.valueOf(i));
+        }
+        list2.remove("18");
+        list2.remove("20");
+        list2.add("21");
+        list2.add("22");
+    }
 }
