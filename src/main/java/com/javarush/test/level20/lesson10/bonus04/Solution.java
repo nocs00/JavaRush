@@ -1,6 +1,10 @@
 package com.javarush.test.level20.lesson10.bonus04;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /* Свой список
@@ -107,7 +111,7 @@ public class Solution
     protected Object clone() throws CloneNotSupportedException {
         Solution copy = new Solution();
         Iterator<String> iterator = this.iterator();
-        while(iterator.hasNext()) copy.add(iterator.next());
+        while(iterator.hasNext()) copy.add(new String(iterator.next()));
         return copy;
     }
 
@@ -116,6 +120,44 @@ public class Solution
         Node parent = nodeWithValue != null ? nodeWithValue.prev : null;
 
         return parent != null ? parent.value : null;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+        out.writeInt(size());
+        out.writeObject(root.left != null ? root.left.value : null);
+        out.writeObject(root.right != null ? root.right.value : null);
+
+        Iterator<String> iterator = iterator();
+        while(iterator.hasNext()) {
+            String value = iterator.next();
+            Node node = findNode(root, value);
+            out.writeObject(value);
+            out.writeObject(node.left != null ? node.left.value : null);
+            out.writeObject(node.right != null ? node.right.value : null);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        int size = in.readInt();
+        if (size <= 0) throw new IllegalArgumentException();
+
+        String rootLeft = (String)in.readObject();
+        String rootRight = (String)in.readObject();
+        root = new Node(null, null,
+                rootLeft != null ? new Node(rootLeft, root) : null,
+                rootRight != null ? new Node(rootRight, root) : null
+        );
+
+        for (int i = 0; i < size; i++) {
+            String value = (String)in.readObject();
+            String left = (String)in.readObject();
+            String right = (String)in.readObject();
+
+            Node current = findNode(root, value);
+            if (current == null) continue;
+            current.left = left != null ? new Node(left, current) : null;
+            current.right = right != null ? new Node(right, current) : null;
+        }
     }
 
     private Node findNode(Node node, String value) {
@@ -265,7 +307,6 @@ public class Solution
             Solution.this.remove(current.value);
         }
 
-
     }
 
     private static class Node {
@@ -275,50 +316,19 @@ public class Solution
         Node right;
 
         Node(String value) {
+            this(value, null, null, null);
+        }
+
+        Node(String value, Node prev) {
+            this(value, prev, null, null);
+        }
+
+        Node(String value, Node prev, Node left, Node right) {
             Node.this.value = value;
+            Node.this.prev = prev;
+            Node.this.left = left;
+            Node.this.right = right;
         }
-    }
-
-    public static void main(String[] args) {
-//        //test1
-//        List<String> list = new Solution();
-//        Node root = ((Solution)list).root;
-//        for (int i = 1; i < 16; i++) {
-//            list.add(String.valueOf(i));
-//        }
-//        ((Solution) list).print();
-//        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
-//        list.remove("5");
-//        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
-//        ((Solution) list).print();
-        //test2
-        List<String> list2 = new Solution();
-        Node root2 = ((Solution) list2).root;
-        for (int i = 1; i < 16; i++) {
-            list2.add(String.valueOf(i));
-        }
-//        ((Solution) list2).print();
-        list2.remove("2");
-        list2.remove("9");
-//        ((Solution) list2).print();
-        //add 16,17,18,19,20
-        for (int i = 16; i < 21; i++) {
-            list2.add(String.valueOf(i));
-        }
-        list2.remove("18");
-        list2.remove("20");
-        list2.add("21");
-        list2.add("22");
-        ((Solution) list2).print();
-
-        MyIterator iterator = (MyIterator)list2.iterator();
-        while (iterator.hasNext()) {
-            String next = iterator.next();
-            if (next.equals("3")) iterator.remove();
-        }
-        ((Solution) list2).print();
-
-
     }
 
     public void print() {
@@ -340,5 +350,73 @@ public class Solution
             for (int i = 0; i < level; i++) System.out.print("\t\t");
             print(node.right, level + 1);
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        List<String> list = new Solution();
+        Node root = ((Solution)list).root;
+        for (int i = 1; i < 16; i++) {
+            list.add(String.valueOf(i));
+        }
+        ((Solution) list).print();
+        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
+        list.remove("5");
+        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
+        ((Solution) list).print();
+
+
+
+
+        List<String> list2 = new Solution();
+        Node root2 = ((Solution) list2).root;
+        for (int i = 1; i < 16; i++) {
+            list2.add(String.valueOf(i));
+        }
+        list2.remove("2");
+        list2.remove("9");
+        //add 16,17,18,19,20
+        for (int i = 16; i < 21; i++) {
+            list2.add(String.valueOf(i));
+        }
+        list2.remove("18");
+        list2.remove("20");
+        list2.add("21");
+        list2.add("22");
+        ((Solution) list2).print();
+
+
+
+
+
+        MyIterator iterator = (MyIterator)list2.iterator();
+        while (iterator.hasNext()) {
+            String next = iterator.next();
+            if (next.equals("3")) iterator.remove();
+        }
+        ((Solution) list2).print();
+
+
+
+
+
+        Path tmpDir = Files.createTempDirectory("tmp_jr");
+        Path tmpFile = Files.createTempFile(tmpDir, null, ".tmp_jr_file");
+        tmpDir.toFile().deleteOnExit();
+        tmpFile.toFile().deleteOnExit();
+        try (
+                ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(tmpFile))
+        ) {
+            oos.writeObject(list2);
+            oos.flush();
+        }
+        List<String> list3 = null;
+        try (
+            ObjectInputStream in = new ObjectInputStream(Files.newInputStream(tmpFile))
+                ) {
+            list3 = (List)in.readObject();
+            ((Solution) list3).print();
+        }
+        Node root3 = ((Solution) list3).root;
+
     }
 }
