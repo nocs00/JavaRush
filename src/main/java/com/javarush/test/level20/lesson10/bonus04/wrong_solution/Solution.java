@@ -6,19 +6,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/*
-should override:
-
-clone()
-size()
-clear()
-get(int index)
-add(String value)
-remove(...)
-getParent(...)
-iterator()
- */
-
 public class Solution
         extends AbstractList<String> implements List<String>, Cloneable, Serializable {
 

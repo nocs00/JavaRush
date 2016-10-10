@@ -1,13 +1,12 @@
 package com.javarush.test.level20.lesson10.bonus04;
 
 import java.io.Serializable;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /* Свой список
-
+Посмотреть, как реализован LinkedList.
+Элементы следуют так: 1->2->3->4  и так 4->3->2->1
+По образу и подобию создать Solution.
 Элементы должны следовать так:
 1->3->7->15
     ->8...
@@ -17,13 +16,10 @@ import java.util.List;
     ->12
  ->6->13
     ->14
-
 Удалили 2 и 9
-
 1->3->7->15
     ->8
  ->4->10
-
 Добавили 16,17,18,19,20 (всегда добавляются на самый последний уровень к тем элементам, которые есть)
 1->3->7->15
        ->16
@@ -99,6 +95,20 @@ public class Solution
     @Override
     public Iterator<String> iterator() {
         return new MyIterator();
+    }
+
+    @Override
+    public void clear() {
+        root.left = null;
+        root.right = null;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Solution copy = new Solution();
+        Iterator<String> iterator = this.iterator();
+        while(iterator.hasNext()) copy.add(iterator.next());
+        return copy;
     }
 
     public String getParent(String value) {
@@ -189,14 +199,15 @@ public class Solution
         return levelNodes;
     }
 
-    private boolean pasteOnLevel(int level, Node toPaste) { //fixme : Добавили 21 и 22 works wrong
+    private boolean pasteOnLevel(int level, Node toPaste) {
         List<Node> prevLevel = getLevelNodes(level - 1);
 
         for (int i = prevLevel.size()-1; i >= 0; i--) {
             Node node = prevLevel.get(i);
             if (i != 0) {
                 Node prevNode = prevLevel.get(i-1);
-                if (prevNode.left == null || prevNode.right == null) continue;
+                if ((node.left == null && node.right == null)
+                        && (prevNode.left == null || prevNode.right == null)) continue;
             }
             if (node.left == null) {
                 node.left = toPaste;
@@ -214,25 +225,47 @@ public class Solution
     }
 
     private class MyIterator implements Iterator<String> {
+        List<Node> allNodes = new ArrayList<>();
+        private int nextIndex;
+        private Node current;
 
         public MyIterator() {
+            init();
+            nextIndex = 0;
+        }
 
+        private void init() {
+            int level = 1;
+            List<Node> levelNodes = null;
+            while (true) {
+                levelNodes = getLevelNodes(level++);
+                if (levelNodes.isEmpty()) break;
+                allNodes.addAll(levelNodes);
+            }
         }
 
         @Override
         public boolean hasNext() {
-            return false;
+            return nextIndex < size();
         }
 
         @Override
         public String next() {
-            return null;
+            if (!hasNext())
+                throw new NoSuchElementException();
+
+            current = allNodes.get(nextIndex++);
+            return current.value;
         }
 
         @Override
         public void remove() {
+            if (current == null) throw new IllegalStateException();
 
+            Solution.this.remove(current.value);
         }
+
+
     }
 
     private static class Node {
@@ -247,24 +280,27 @@ public class Solution
     }
 
     public static void main(String[] args) {
-        //test1
-        List<String> list = new Solution();
-        Node root = ((Solution)list).root;
-        for (int i = 1; i < 16; i++) {
-            list.add(String.valueOf(i));
-        }
-        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
-        list.remove("5");
-        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
-
+//        //test1
+//        List<String> list = new Solution();
+//        Node root = ((Solution)list).root;
+//        for (int i = 1; i < 16; i++) {
+//            list.add(String.valueOf(i));
+//        }
+//        ((Solution) list).print();
+//        System.out.println("Expected 3, actual is " + ((Solution) list).getParent("8"));
+//        list.remove("5");
+//        System.out.println("Expected null, actual is " + ((Solution) list).getParent("11"));
+//        ((Solution) list).print();
         //test2
         List<String> list2 = new Solution();
         Node root2 = ((Solution) list2).root;
         for (int i = 1; i < 16; i++) {
             list2.add(String.valueOf(i));
         }
+//        ((Solution) list2).print();
         list2.remove("2");
         list2.remove("9");
+//        ((Solution) list2).print();
         //add 16,17,18,19,20
         for (int i = 16; i < 21; i++) {
             list2.add(String.valueOf(i));
@@ -273,5 +309,36 @@ public class Solution
         list2.remove("20");
         list2.add("21");
         list2.add("22");
+        ((Solution) list2).print();
+
+        MyIterator iterator = (MyIterator)list2.iterator();
+        while (iterator.hasNext()) {
+            String next = iterator.next();
+            if (next.equals("3")) iterator.remove();
+        }
+        ((Solution) list2).print();
+
+
+    }
+
+    public void print() {
+        System.out.println();
+        System.out.println();
+        System.out.println("====================");
+        print(root, 0);
+        System.out.println();
+        System.out.println("====================");
+        System.out.println();
+    }
+
+    public void print(Node node, int level) {
+        if (level > 0) System.out.print("\t->\t"+node.value);
+
+        if (node.left != null) print(node.left, level + 1);
+        if (node.right != null) {
+            System.out.println();
+            for (int i = 0; i < level; i++) System.out.print("\t\t");
+            print(node.right, level + 1);
+        }
     }
 }
