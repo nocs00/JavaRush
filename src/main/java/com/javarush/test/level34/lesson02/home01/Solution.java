@@ -23,7 +23,7 @@ public class Solution {
         Solution solution = new Solution();
         String s = null;
 
-        s = "sin(2*(5+1.5*4)+28)";
+        s = "sin(2*(-5+1.5*4)+28)";
         System.out.print(s + " expected output 0.5 6 actually ");
         solution.recursion(s, 0);
 
@@ -147,13 +147,25 @@ public class Solution {
         int opsCount = countOperation + getOpsCount(simpleExpression);
         String calculated = calculate(simpleExpression);
         String rounded = getRounded(calculated);
-        texpression = texpression.replace(simpleExpression, rounded);
+        texpression = replaceSimpleExpression(texpression, simpleExpression, rounded);
 
         if (isSimple(texpression)) {
             System.out.println(rounded+" "+opsCount);
         } else {
-            recursion(texpression, 0);
+            recursion(texpression, opsCount);
         }
+    }
+
+    private String replaceSimpleExpression(String expression, String simple, String rounded) {
+        List<String> symbols = getSymbols(simple);
+        String variant1 = "(" + symbols.get(0) + ")" + symbols.get(1) + symbols.get(2);
+        String variant2 = symbols.get(0) + symbols.get(1) + "(" + symbols.get(2) + ")";
+
+        if (expression.contains(simple)) expression = expression.replace(simple, rounded);
+        else if (expression.contains(variant1)) expression = expression.replace(variant1, rounded);
+        else if (expression.contains(variant2)) expression = expression.replace(variant2, rounded);
+
+        return expression;
     }
 
     private int getOpsCount(String s) {
@@ -187,8 +199,8 @@ public class Solution {
         if (s == null || s.isEmpty()) throw new IllegalStateException();
         String exp = s;
         if (exp.startsWith("-")) exp = exp.substring(1, exp.length());
-        if ((exp.length() > 3) && (isFunc(exp.substring(0, 3)))) exp = exp.substring(3, exp.length());
-        if ((exp.length() > 3) && (exp.startsWith("(") && exp.endsWith(")"))) exp = exp.substring(1, exp.length()-1);
+//        if ((exp.length() > 3) && (isFunc(exp.substring(0, 3)))) exp = exp.substring(3, exp.length());
+//        if ((exp.length() > 3) && (exp.startsWith("(") && exp.endsWith(")"))) exp = exp.substring(1, exp.length()-1);
         if (isOperand(exp)) return true;
         return false;
     }
@@ -204,9 +216,8 @@ public class Solution {
         double d = Double.parseDouble(s);
         double rounded = Math.round(d*100.0)/100.0;
         s = String.valueOf(rounded);
-        while ((s.length() > 1)
-                        && (s.endsWith("0") || s.endsWith(".")))
-            s = s.substring(0,s.length()-1);
+        if (s.endsWith(".00")) s = s.replace(".00", "");
+        if (s.endsWith(".0")) s = s.replace(".0", "");
         return s;
     }
 
