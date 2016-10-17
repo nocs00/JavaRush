@@ -8,13 +8,13 @@ import java.util.LinkedHashMap;
 Метод getMap должен возвращать тип поля map.
 */
 public class Solution<T extends HashMap> {
-    private HashMap map;
+    private T map;
 
-    public Solution(HashMap map) {
+    public Solution(T map) {
         this.map = map;
     }
 
-    public HashMap getMap() {
+    public T getMap() {
         return map;
     }
 
