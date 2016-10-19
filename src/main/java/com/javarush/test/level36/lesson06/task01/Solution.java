@@ -1,7 +1,10 @@
 package com.javarush.test.level36.lesson06.task01;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /* Найти класс по описанию
@@ -16,32 +19,51 @@ public class Solution {
     }
 
     public static Class getExpectedClass() {
-        Class<?> clazz = Arrays.class;
+        Class<?> clazz = Collections.class;
         Class<?>[] clazzes = clazz.getDeclaredClasses();
 
-        Class<?> foundClazz = null;
+        List<Class<?>> foundClasses = new ArrayList<>();
         for (Class<?> c : clazzes) {
             Class<?>[] interfaces = c.getInterfaces();
             for (Class<?> i : interfaces) {
                 if (List.class.isAssignableFrom(c)) {
-                    foundClazz = c;
+                    foundClasses.add(c);
                     break;
                 }
             }
         }
 
-        if (foundClazz != null) {
+        for (Class<?> foundedClass : foundClasses) {
             try {
-                Method method = foundClazz.getMethod("get", int.class);
+                boolean isPrivate = Modifier.isPrivate(foundedClass.getModifiers());
+                boolean isStatic = Modifier.isStatic(foundedClass.getModifiers());
+                if (!(isPrivate && isStatic)) {
+                    continue;
+                }
+
+                Constructor<?> constructor = null;
+                Constructor<?>[] constructors = foundedClass.getDeclaredConstructors();
+                for (Constructor<?> c : constructors) {
+                    if (c.getParameterCount() == 0) {
+                        constructor = c;
+                        break;
+                    }
+                }
+                Method method = foundedClass.getMethod("get", int.class);
+                constructor.setAccessible(true);
                 method.setAccessible(true);
-                method.invoke(clazz.newInstance(), 0);
+                Object obj = constructor.newInstance();
+                method.invoke(obj, 0);
                 method.setAccessible(false);
+                constructor.setAccessible(false);
             } catch (Exception e) {
-                if (e instanceof IndexOutOfBoundsException) {
-                    return foundClazz;
+                if (e.getCause() instanceof IndexOutOfBoundsException) {
+                    return foundedClass;
                 }
             }
         }
+
+
         return null;
     }
 }
