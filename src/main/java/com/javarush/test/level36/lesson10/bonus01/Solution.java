@@ -1,16 +1,12 @@
 package com.javarush.test.level36.lesson10.bonus01;
 
-import com.javarush.test.level36.lesson10.bonus01.data.second.HiddenClassImplSecond;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 
@@ -59,11 +55,10 @@ public class Solution {
         }
 
         MyCL classLoader = new MyCL(packageName, HiddenClass.class.getClassLoader());
-//        ClassLoader classLoader = Solution.class.getClassLoader();
-
         for (File f : classes) {
             String relativized = Paths.get(packageName).relativize(Paths.get(f.getAbsolutePath())).toString();
-//            Class<?> clazz = classLoader.loadClass(packageLocal + relativized.replace(".class", ""));
+            if (f.getName().replace(".class", "").equals(HiddenClass.class.getSimpleName()))
+                continue;
             Class<?> clazz = classLoader.loadClass(relativized.replace(".class", ""));
 
             boolean isHidden = false;
@@ -90,50 +85,23 @@ public class Solution {
         }
     }
 
-//    public HiddenClass getHiddenClassObjectByKey(String key) {
-//        for (Class hiddenClass : hiddenClasses) {
-//            Constructor defaultConstructor = null;
-//            for (Constructor constructor : hiddenClass.getDeclaredConstructors()) {
-//                if (constructor.getParameterTypes().length == 0) {
-//                    defaultConstructor = constructor;
-//                    break;
-//                }
-//            }
-//            defaultConstructor.setAccessible(true);
-//            String name = hiddenClass.getSimpleName().toLowerCase();
-//            try {
-//                if (name.startsWith(key)) return (HiddenClass)defaultConstructor.newInstance(null);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            defaultConstructor.setAccessible(false);
-//        }
-//        return null;
-//    }
-
     public HiddenClass getHiddenClassObjectByKey(String key) {
-        for(Class clazz: hiddenClasses){
-            if(clazz.getSimpleName().toLowerCase().startsWith(key.toLowerCase())){
-                try
-                {
-                    Constructor[] constructors = clazz.getDeclaredConstructors();
-                    for(Constructor constructor: constructors){
-                        if(constructor.getParameterTypes().length==0){
-                            constructor.setAccessible(true);
-                            Object o = constructor.newInstance();
-                            Class interfaze = o.getClass().getInterfaces()[0];
-
-                            HiddenClass h = (HiddenClass)o;
-                            return (HiddenClass) o;
-                        }
-                    }
+        for (Class hiddenClass : hiddenClasses) {
+            Constructor defaultConstructor = null;
+            for (Constructor constructor : hiddenClass.getDeclaredConstructors()) {
+                if (constructor.getParameterTypes().length == 0) {
+                    defaultConstructor = constructor;
+                    break;
                 }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-
             }
+            defaultConstructor.setAccessible(true);
+            String name = hiddenClass.getSimpleName().toLowerCase();
+            try {
+                if (name.startsWith(key)) return (HiddenClass)defaultConstructor.newInstance(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            defaultConstructor.setAccessible(false);
         }
         return null;
     }
