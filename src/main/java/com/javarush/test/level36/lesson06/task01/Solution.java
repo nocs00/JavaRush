@@ -44,7 +44,7 @@ public class Solution {
                 Constructor<?> constructor = null;
                 Constructor<?>[] constructors = foundedClass.getDeclaredConstructors();
                 for (Constructor<?> c : constructors) {
-                    if (c.getParameterCount() == 0) {
+                    if (c.getParameterTypes().length == 0) {
                         constructor = c;
                         break;
                     }

@@ -68,7 +68,7 @@ public class Solution {
 
                 boolean hasDefaultConstructor = false;
                 for (Constructor<?> constructor : clazz.getConstructors()) {
-                    if (constructor.getParameterCount() == 0) {
+                    if (constructor.getParameterTypes().length == 0) {
                         hasDefaultConstructor = true;
                         break;
                     }
