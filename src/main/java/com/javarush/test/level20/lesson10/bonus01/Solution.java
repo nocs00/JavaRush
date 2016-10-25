@@ -15,23 +15,82 @@ getNumbers должен возвращать все такие числа в п�
 */
 public class Solution {
     public static int[] getNumbers(int N) {
-        int[] result = null;
-        int[] narcissistic = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 153, 370, 371, 407, 1634, 8208,
-                9474, 54748, 92727, 93084, 548834, 1741725, 4210818, 9800817, 9926315, 24678050,
-                24678051, 88593477, 146511208, 472335975, 534494836, 912985153};
-        //, 4679307774, 32164049650, 32164049651};
-        int count = 0;
-        int i = 0;
-        while (i < narcissistic.length && N >= narcissistic[i]) {
-            count++;
-            i++;
+        int size = 10;
+        int[] result = new int[size];
+        int lastIndex = 0;
+
+        for (int i = 1; i <= N; i++) {
+            if (isWantedNumber(i)) {
+                result[lastIndex++] = i;
+                if (lastIndex >= result.length) {
+                    size *= 2;
+                    result = resize(size, result, result.length);
+                }
+            }
         }
 
-        result = new int[count];
-        for (i = 0; i < count; i++) {
-            result[i] = narcissistic[i];
+        if (result.length > lastIndex) {
+            result = resize(lastIndex, result, lastIndex);
         }
 
         return result;
+    }
+
+    private static int[] resize(int newSize, int[] oldArray, int length) {
+        int[] newArray = new int[newSize];
+        System.arraycopy(oldArray, 0, newArray, 0, length);
+        return newArray;
+    }
+
+    private static boolean isWantedNumber(int N) {
+        int result = 0;
+        int power = 0;
+        int tmp = N;
+        while (tmp > 0) {
+            tmp = tmp / 10;
+            power++;
+        }
+        tmp = N;
+        while (tmp > 0) {
+            int current = tmp % 10;
+            tmp = tmp / 10;
+            int powered = current;
+            for (int i = 0; i < power-1; i++) powered *= current;
+            result += powered;
+            if (result > N) return false;
+        }
+
+        if (N == result) return true;
+        return false;
+    }
+
+    private static void print(int[] numbers) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        boolean first = true;
+        for (int n : numbers) {
+            if (first) first = false;
+            else sb.append(", ");
+            sb.append(n);
+        }
+        sb.append("]");
+        System.out.println(sb.toString());
+    }
+
+    public static void main(String[] args) {
+//        int[] numbers = getNumbers(Integer.MAX_VALUE);
+//        print(numbers);
+//        isWantedNumber(370);
+
+
+        long memoryStart = Runtime.getRuntime().freeMemory();
+        Long t0 = System.currentTimeMillis();
+        int[]result = getNumbers(100000000);
+        long memoryEnd = Runtime.getRuntime().maxMemory();
+        long memoTaken = memoryStart - memoryEnd;
+        System.out.println(memoTaken);
+        Long t1 = System.currentTimeMillis();
+        System.out.println("Time need to create the arrray = " + (t1 - t0));
+        System.out.println("Used Memory in JVM: " + (Runtime.getRuntime().maxMemory() - Runtime.getRuntime().freeMemory()));
     }
 }
