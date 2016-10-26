@@ -15,4 +15,22 @@ public class ExceptionFactory {
         }
         return new IllegalArgumentException();
     }
+
+    /*
+    public static Throwable getException(Enum enumeration) {
+
+        if (enumeration != null) {
+            if (enumeration instanceof ExceptionApplicationMessage) {
+                return new Exception(enumeration.name().charAt(0) + enumeration.name().substring(1).toLowerCase().replace("_", " "));
+            }
+            else if (enumeration instanceof ExceptionDBMessage) {
+                return new RuntimeException(enumeration.name().charAt(0) + enumeration.name().substring(1).toLowerCase().replace("_", " "));
+            }
+            else if (enumeration instanceof ExceptionUserMessage) {
+                return new Error(enumeration.name().charAt(0) + enumeration.name().substring(1).toLowerCase().replace("_", " "));
+            }
+        }
+        return new IllegalArgumentException();
+    }
+     */
 }
